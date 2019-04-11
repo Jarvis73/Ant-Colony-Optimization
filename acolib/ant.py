@@ -13,15 +13,15 @@
 # limitations under the License.
 # =================================================================================
 
-import random
 import threading
 import numpy as np
 
 
 class Ant(threading.Thread):
     def __init__(self, id_, start, colony):
+        threading.Thread.__init__(self)
         self.id = id_
-        self.start = start
+        self.start_node = start
         self.colony = colony
 
         self.cur_node = start
@@ -34,33 +34,32 @@ class Ant(threading.Thread):
         self.unseen = list(range(self.graph.num_nodes))
         del self.unseen[start]
 
+        self.next = self.next_AS
+
     def run(self):
         while not self.request_stop():
             self.graph.lock.acquire()
             next_node = self.next(self.cur_node)
-            self.cost += self.graph.edges_mat[self.cur_node, next_node]
+            self.cost += self.graph.edges[self.cur_node, next_node]
             self.path.append(next_node)
-            self.local_update(self.cur_node, next_node)
+            # print("Ant %s : %s, %s" % (self.id, self.path, self.cost,))
+            # self.local_update(self.cur_node, next_node)
+            self.graph.lock.release()
 
             self.cur_node = next_node
 
-        self.cost += self.graph.edges_mat[self.path[-1], self.path[0]]
+        self.cost += self.graph.edges[self.path[-1], self.path[0]]
         self.colony.solution_update(self)
 
-        # Restart thread
-        self.__init__(self.id, self.start, self.colony)
+        # print("Ant thread %s terminating." % self.id)
 
-    def next(self, i):
-        e = random.random()
-        if e < self.exploit:    # Exploitation
-            next_prob = (self.colony.pheromone[i, self.unseen] ** self.colony.alpha *
-                         self.colony.heuristic[i, self.unseen] ** self.colony.beta)
-            idx = np.argmax(next_prob)
-            next_node = self.unseen[idx]
-            del self.unseen[idx]
-            return next_node
-        else:   # Exploration
-            raise NotImplementedError
+    def next_AS(self, i):
+        next_prob = (self.colony.pheromone[i, self.unseen] ** self.colony.alpha *
+                     self.colony.heuristic[i, self.unseen] ** self.colony.beta)
+        idx = np.argmax(next_prob)
+        next_node = self.unseen[idx]
+        del self.unseen[idx]
+        return next_node
 
     def request_stop(self):
         return not self.unseen
