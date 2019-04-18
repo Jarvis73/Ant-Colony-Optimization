@@ -19,7 +19,7 @@ python main.py --tsp tsp_file --alg AS --ants 20
 | MMAS |最大-最小蚂蚁系统, 限制信息素的变化范围, 重点探索当前最优的路径, 信息素以小比率衰减|
 | ACS | 局部信息素更新, 全局增加只针对当前的最优路径 |
 
-## Results
+## Results (xqf131.tsp)
 
 | Name | Config | Results |
 |:----:|:------:|:-------:|
