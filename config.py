@@ -18,8 +18,11 @@ def add_arguments(parser):
     group = parser.add_argument_group(title="Global Arguments")
     group.add_argument("--tsp_file",
                        type=str,
-                       required=True, help="TSP file. First line is the number of cities, and"
-                                           "other lines store the distance matrix")
+                       required=True, help="TSP file")
+    group.add_argument("--sln_file",
+                       type=str,
+                       nargs="*",
+                       required=False, help="TSP solution file")
     group.add_argument("--alpha",
                        type=float,
                        default=1.0, help="Parameter to determine the pheromone influence")
@@ -32,7 +35,7 @@ def add_arguments(parser):
                        type=int, help="Number of ants")
     group.add_argument("--alg",
                        type=str,
-                       choices=["AS", "EAS", "ASRank", "MMAS"],
+                       choices=["AS", "EAS", "ASRank", "MMAS", "ACS"],
                        required=True, help="Algorithm to perform")
     group.add_argument("--iters",
                        type=int,
@@ -40,6 +43,8 @@ def add_arguments(parser):
     group.add_argument("--repeat",
                        type=int,
                        default=20, help="Number of repeat")
+    group.add_argument("--local_search",
+                       action="store_true", help="Use ants' local search algorithm")
 
     group = parser.add_argument_group(title="ASRank Arguments")
     group.add_argument("--top",
@@ -51,6 +56,12 @@ def add_arguments(parser):
                        type=float,
                        default=1.0, help="Probability for using iter best path to update pheromone. "
                                          "The other choice is best-so-far path.")
+
+    group = parser.add_argument_group(title="ACS Arguments")
+    group.add_argument("--q0",
+                       type=float,
+                       default=0.9, help="Probability for using pseudorandom proportional action "
+                                         "choice rule.")
 
 
 def maybe_fill(x, v):
@@ -67,6 +78,8 @@ def fill_default(args):
     elif args.alg == "ASRank":
         args.rho = maybe_fill(args.rho, 0.1)
     elif args.alg == "MMAS":
-        args.rho = maybe_fill(args.rho, 0.2)
+        args.rho = maybe_fill(args.rho, 0.02)
+    elif args.alg == "ACS":
+        args.rho = maybe_fill(args.rho, 0.1)
     else:
         raise ValueError
